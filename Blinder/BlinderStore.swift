@@ -158,7 +158,13 @@ struct BlinderRenamePlan {
 }
 
 private struct BlinderFileScanner {
-    func listFiles(in folderURL: URL, imageOnly: Bool) throws -> [URL] {
+    /// Images and common video containers Blinder can rename like any other file.
+    private static let blindableExtensions: Set<String> = [
+        "jpg", "jpeg", "tif", "tiff", "png", "bmp", "gif", "webp", "heic",
+        "mov", "mp4", "m4v", "avi", "mkv", "webm", "mpg", "mpeg", "wmv", "3gp", "3g2", "flv",
+    ]
+
+    func listFiles(in folderURL: URL, supportedMediaOnly: Bool) throws -> [URL] {
         let values = try folderURL.resourceValues(forKeys: [.isDirectoryKey, .isReadableKey])
         guard values.isDirectory == true, values.isReadable == true else {
             throw BlinderError.message("Folder cannot be read.")
@@ -172,9 +178,9 @@ private struct BlinderFileScanner {
         let filtered = try urls.filter { url in
             let attrs = try url.resourceValues(forKeys: [.isRegularFileKey])
             guard attrs.isRegularFile == true else { return false }
-            guard imageOnly else { return true }
+            guard supportedMediaOnly else { return true }
             let ext = url.pathExtension.lowercased()
-            return ["jpg", "jpeg", "tif", "tiff", "png", "bmp", "gif", "webp", "heic"].contains(ext)
+            return Self.blindableExtensions.contains(ext)
         }
         return filtered.sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
     }
@@ -750,7 +756,7 @@ final class BlinderStore: ObservableObject {
             return
         }
         do {
-            let urls = try scanner.listFiles(in: sourceFolderURL, imageOnly: true)
+            let urls = try scanner.listFiles(in: sourceFolderURL, supportedMediaOnly: true)
             files = urls.map { BlinderSelectableFile(url: $0, selected: true) }
             statusMessage = "\(files.count) files loaded."
             errorMessage = nil

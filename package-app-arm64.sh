@@ -11,8 +11,8 @@ set -euo pipefail
 APP_NAME="BlinderApp"
 DISPLAY_NAME="Blinder App"
 BUNDLE_ID="com.ansgarscheffold.blinder"
-VERSION="1.0"
-BUILD_NUMBER="1"
+VERSION="1.1"
+BUILD_NUMBER="2"
 ICON_NAME="BlinderAppIcon"
 
 BUILD_PATH=".build-arm64-release"
